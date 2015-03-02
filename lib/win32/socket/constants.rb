@@ -1,3 +1,5 @@
+require 'ffi'
+
 module Windows
   module WSASocketConstants
     # Address Family
@@ -43,5 +45,10 @@ module Windows
     WSA_FLAG_MULTIPOINT_D_LEAF = 0x10
     WSA_FLAG_ACCESS_SYSTEM_SECURITY = 0x40
     WSA_FLAG_NO_HANDLE_INHERIT = 0x80
+
+    # Errors
+
+    INVALID_SOCKET_VALUE = (1<<FFI::Platform::ADDRESS_SIZE)-1
+    SOCKET_ERROR = -1
   end
 end
