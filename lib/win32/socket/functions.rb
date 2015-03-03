@@ -10,7 +10,7 @@ module Windows
 
     attach_function :WSASocketA, [:int, :int, :int, :pointer, :int, :dword], :socket
     attach_function :WSACleanup, [], :int
-    attach_function :WSAConnectEx, [:socket, :pointer, :int, :pointer, :pointer, :pointer, :pointer], :int
+    attach_function :WSAConnect, [:socket, :pointer, :int, :pointer, :pointer, :pointer, :pointer], :int
     attach_function :WSAGetLastError, [], :int
     attach_function :closesocket, [:socket], :int
   end
