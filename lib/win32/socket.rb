@@ -41,7 +41,11 @@ module Win32
       @address = args.delete(:address)
 
       # Optional
-      @protocol_info = args.delete(:protocol_info)
+      @protocol_info = WSAPROTOCOL_INFO.new
+
+      if args[:protocol_info]
+        args.protocol_info.each{ |k,v| @protocol_info.send(k, v) }
+      end
 
       @socket = WSASocketA(
         @address_family,
