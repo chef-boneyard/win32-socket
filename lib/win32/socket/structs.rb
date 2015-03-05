@@ -2,6 +2,23 @@ require 'ffi'
 
 module Windows
   module WSASocketStructs
+    class Sockaddr < FFI::Struct
+      layout(:sa_family, :ushort, :sa_data, [:char, 14])
+    end
+
+    class InAddr < FFI::Struct
+      layout(:s_addr, :ulong)
+    end
+
+    class SockaddrIn < FFI::Struct
+      layout(
+        :sin_family, :short,
+        :sin_port, :ushort,
+        :in_addr, InAddr,
+        :sin_zero [:char, 8]
+      )
+    end
+
     class WSAPROTOCOL_INFO < FFI::Struct
       extend FFI::Library
 
