@@ -68,7 +68,10 @@ module Win32
       if closesocket(@socket) == SOCKET_ERROR
         raise SystemCallError.new("closesocket", WSAGetLastError())
       end
+    end
 
+    def cleanup
+      close
       if WSACleanup() == SOCKET_ERROR
         raise SystemCallError.new("WSACleanup", WSAGetLastError())
       end
