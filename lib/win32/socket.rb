@@ -35,7 +35,8 @@ module Win32
       @protocol       = args.delete(:protocol)       || IPPROTO_TCP
       @group          = args.delete(:group)          || 0
       @flags          = args.delete(:flags)          || WSA_FLAG_OVERLAPPED
-      @port           = args.delete(:port)
+      @service        = args.delete(:service)        || 'http'
+      @port           = args.delete(:port)           || @service
       @address        = args.delete(:address)
 
       if args[:protocol_info]
@@ -61,7 +62,15 @@ module Win32
       end
     end
 
-    def connect
+    def connect(data = nil)
+=begin
+      int = WSAConnectByName(
+        @socket,
+        @host,
+        @port,
+
+      )
+=end
     end
 
     def close
