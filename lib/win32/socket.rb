@@ -30,21 +30,21 @@ module Win32
     #   :flags          => WSASocket::WSA_FLAG_OVERLAPPED | WSASocket::WSA_NO_HANDLE_INHERIT
     # )
     def initialize(args = {})
-      @address_family  = args.delete(:address_family) || AF_INET
-      @socket_type = args.delete(:socket_type) || SOCK_STREAM
-      @protocol = args.delete(:protocol) || IPPROTO_TCP
-      @group = args.delete(:group) || 0
-      @flags = args.delete(:flags) || WSA_FLAG_OVERLAPPED
-
-      # Mandatory
-      @port = args.delete(:port)
-      @address = args.delete(:address)
-
-      # Optional
-      @protocol_info = WSAPROTOCOL_INFO.new
+      @address_family = args.delete(:address_family) || AF_INET
+      @socket_type    = args.delete(:socket_type)    || SOCK_STREAM
+      @protocol       = args.delete(:protocol)       || IPPROTO_TCP
+      @group          = args.delete(:group)          || 0
+      @flags          = args.delete(:flags)          || WSA_FLAG_OVERLAPPED
+      @port           = args.delete(:port)
+      @address        = args.delete(:address)
 
       if args[:protocol_info]
-        args.protocol_info.each{ |k,v| @protocol_info.send(k, v) }
+        @protocol_info = WSAPROTOCOL_INFO.new
+        args.delete(:protocol_info).each{ |k,v| @protocol_info.send(k, v) }
+      end
+
+      if args.keys.size > 0
+        raise ArgumentError, "invalid key(s): #{args.keys.join(', ')}"
       end
 
       @socket = WSASocketA(
@@ -78,7 +78,7 @@ end
 
 if $0 == __FILE__
   include Win32
-  s = WSASocket.new
+  s = WSASocket.new(:address_family => WSASocket::AF_INET)
   p s
   s.close
 end
