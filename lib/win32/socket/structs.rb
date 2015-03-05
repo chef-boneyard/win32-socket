@@ -14,7 +14,7 @@ module Windows
       layout(
         :sin_family, :short,
         :sin_port, :ushort,
-        :in_addr, InAddr,
+        :sin_addr, InAddr,
         :sin_zero [:char, 8]
       )
     end
