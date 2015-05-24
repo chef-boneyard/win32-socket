@@ -15,8 +15,29 @@ module Windows
         :sin_family, :short,
         :sin_port, :ushort,
         :sin_addr, InAddr,
-        :sin_zero [:char, 8]
+        :sin_zero, [:char, 8]
       )
+    end
+
+    # TODO: Get sizes without creating pointer
+    sa_family_t = FFI::MemoryPointer.new(:uint)
+
+    SS_MAXSIZE   = 128
+    SS_ALIGNSIZE = FFI::MemoryPointer.new(:int64).size
+    SS_PAD1SIZE  = SS_ALIGNSIZE - sa_family_t.size
+    SS_PAD2SIZE  = SS_MAXSIZE - (sa_family_t.size + SS_PAD1SIZE + SS_ALIGNSIZE)
+
+    class SockaddrStorage < FFI::Struct
+      layout(
+        :ss_family, :short,
+        :ss_pad1, [:char, SS_PAD1SIZE],
+        :ss_align, :int64,
+        :ss_pad2, [:char, SS_PAD2SIZE],
+      )
+    end
+
+    class Timeval < FFI::Struct
+      layout(:tv_sec, :long, :tv_usec, :long)
     end
 
     class WSAPROTOCOL_INFO < FFI::Struct
