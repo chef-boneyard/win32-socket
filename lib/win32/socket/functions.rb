@@ -13,6 +13,7 @@ module Windows
     attach_function :WSACleanup, [], :int
     attach_function :WSAConnect, [:socket, :ptr, :int, :ptr, :ptr, :ptr, :ptr], :int
     attach_function :WSAConnectByNameA, [:socket, :string, :string, :ptr, :ptr, :ptr, :ptr, :ptr, :ptr], :bool
+    attach_function :WSAEnumNameSpaceProviders, [:ptr, :ptr], :int
     attach_function :WSAGetLastError, [], :int
     attach_function :closesocket, [:socket], :int
     attach_function :inet_addr, [:string], :ulong
