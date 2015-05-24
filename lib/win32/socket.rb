@@ -110,9 +110,6 @@ module Win32
     end
 
     def connect(host, port = 'http', timeout = nil)
-      local = SockaddrStorage.new
-      remote = SockaddrStorage.new
-
       if timeout
         timeval = Timeval.new
         timeval[:tv_sec] = timeout
@@ -120,17 +117,7 @@ module Win32
         timeval = nil
       end
 
-      bool = WSAConnectByNameA(
-        @socket,
-        host,
-        port,
-        local.size,
-        local,
-        remote.size,
-        remote,
-        timeval,
-        nil
-      )
+      bool = WSAConnectByNameA(@socket, host, port, nil, nil, nil, nil, timeval, nil)
 
       unless bool
         raise SystemCallError.new('WSAConnectByName', WSAGetLastError())
@@ -157,7 +144,6 @@ end
 if $0 == __FILE__
   include Win32
   s = WSASocket.new(:address_family => WSASocket::AF_INET)
-  p s
   s.connect('www.google.com')
   s.close
 end
