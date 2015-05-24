@@ -1,2 +1,14 @@
 = Description
 A Ruby socket library for MS Windows.
+
+= How does Win32::Socket differ from Socket?
+  MRI uses the POSIX compatibility layer functions internally rather than the
+  functions specific to the Windows API. While this works, it is also less
+  flexible.
+
+  There are several differences between a core Ruby Socket and a Win32::Socket.
+
+  * A Win32::Socket is not overlapped by default.
+  * A Win32::Socket can be organized into socket groups.
+  * A Win32::Socket lets you specify protocol data, such as service information,
+    provider information, protocol chains, and so on.
