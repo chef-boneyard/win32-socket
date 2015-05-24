@@ -2,6 +2,15 @@ require 'ffi'
 
 module Windows
   module WSASocketStructs
+    extend FFI::Library
+
+    typedef :ulong, :dword
+    typedef :ushort, :word
+
+    class GUID < FFI::Struct
+      layout(:Data1, :dword, :Data2, :word, :Data3, :word, :Data4, [:uchar, 8])
+    end
+
     class Sockaddr < FFI::Struct
       layout(:sa_family, :ushort, :sa_data, [:char, 14])
     end
@@ -69,6 +78,16 @@ module Windows
           :szProtocol, [:char, 512]
         )
       end
+    end
+
+    class WSANAMESPACE_INFO < FFI::Struct
+      layout(
+        :NSProviderId, GUID,
+        :dwNameSpace, :dword,
+        :fActive, :bool,
+        :dwVersion, :dword,
+        :lpszIdentifier, :string
+      )
     end
   end
 end
