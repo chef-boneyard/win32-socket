@@ -113,8 +113,12 @@ module Win32
       local = SockaddrStorage.new
       remote = SockaddrStorage.new
 
-      timeval = Timeval.new
-      timeval[:tv_sec] = timeout if timeout
+      if timeout
+        timeval = Timeval.new
+        timeval[:tv_sec] = timeout
+      else
+        timeval = nil
+      end
 
       bool = WSAConnectByNameA(
         @socket,
