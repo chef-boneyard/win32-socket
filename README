@@ -6,11 +6,11 @@
   functions specific to the Windows API. While this works, it is also less
   flexible.
 
-  There are several differences between a core Ruby Socket and a Win32::Socket.
+  There are several differences between a core Ruby Socket and a WSASocket
 
-  * A Win32::Socket is not necessarily overlapped.
-  * A Win32::Socket can be organized into socket groups.
-  * A Win32::Socket lets you specify protocol data, such as service information,
+  * A WSASocket is not necessarily overlapped.
+  * A WSASocket can be organized into socket groups.
+  * A WSASocket lets you specify protocol data, such as service information,
     provider information, protocol chains, and so on.
 
 = Author
