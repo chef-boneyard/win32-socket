@@ -8,6 +8,8 @@ module Win32
     include Windows::WSASocketConstants
     include Windows::WSASocketStructs
     include Windows::WSASocketFunctions
+    extend Windows::WSASocketStructs
+    extend Windows::WSASocketFunctions
 
     attr_reader :address_family
     attr_reader :socket_type
@@ -138,12 +140,39 @@ module Win32
         raise SystemCallError.new("WSACleanup", WSAGetLastError())
       end
     end
+
+    # Singleton methods
+
+    def self.namespace_providers
+      buflen = FFI::MemoryPointer.new(:ulong)
+      buffer = FFI::MemoryPointer.new(WSANAMESPACE_INFO, 1024)
+
+      buflen.write_int(buffer.size)
+
+      int = WSAEnumNameSpaceProvidersA(buflen, buffer)
+
+      if int == SOCKET_ERROR
+        raise SystemCallError.new('WSAEnumNameSpaceProviders', WSAGetLastError())
+      end
+
+      arr = []
+
+      6.times{
+        info = WSANAMESPACE_INFO.new(buffer)
+        arr << info[:lpszIdentifier]
+        buffer += WSANAMESPACE_INFO.size
+      }
+
+      arr
+    end
   end
 end
 
 if $0 == __FILE__
   include Win32
-  s = WSASocket.new(:address_family => WSASocket::AF_INET)
-  s.connect('www.google.com')
-  s.close
+  #s = WSASocket.new(:address_family => WSASocket::AF_INET)
+  #s.connect('www.google.com')
+  #s.close
+
+  p WSASocket.namespace_providers
 end
