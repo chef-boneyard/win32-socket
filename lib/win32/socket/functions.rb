@@ -17,6 +17,7 @@ module Windows
     attach_function :WSAConnect, [:socket, :ptr, :int, :ptr, :ptr, :ptr, :ptr], :int
     attach_function :WSAConnectByNameA, [:socket, :string, :string, :ptr, :ptr, :ptr, :ptr, :ptr, :ptr], :bool
     attach_function :WSAEnumNameSpaceProvidersA, [:ptr, :ptr], :int
+    attach_function :WSAEnumProtocolsA, [:ptr, :ptr, :ptr], :int
     attach_function :WSAGetLastError, [], :int
     attach_function :WSASocketA, [:int, :int, :int, :ptr, :int, :dword], :socket
     attach_function :WSAStartup, [:word, :ptr], :int
