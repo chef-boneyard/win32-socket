@@ -145,7 +145,7 @@ module Win32
 
     def self.namespace_providers
       buflen = FFI::MemoryPointer.new(:ulong)
-      buffer = FFI::MemoryPointer.new(WSANAMESPACE_INFO, 1024)
+      buffer = FFI::MemoryPointer.new(WSANAMESPACE_INFO, 128)
 
       buflen.write_int(buffer.size)
 
