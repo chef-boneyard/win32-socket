@@ -185,6 +185,8 @@ module Win32
         arr << info
         buffer += WSAPROTOCOL_INFO.size
       }
+
+      arr
     end
   end
 end
