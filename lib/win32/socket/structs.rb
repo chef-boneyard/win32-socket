@@ -77,7 +77,7 @@ module Windows
         :iSecurityScheme, :int,
         :dwMessageSize, :dword,
         :dwProviderReserved, :dword,
-        :szProtocol, [:char, WSAPROTOCOL_LENGTH + 1]
+        :szProtocol, [:char, WSAPROTOCOL_LENGTH]
       )
     end
 
