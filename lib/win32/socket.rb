@@ -28,6 +28,7 @@ module Win32
     # :protocol       - Default protocol is IPPROTO_TCP.
     # :group          - No socket group by default.
     # :flags          - Default is WSA_FLAG_OVERLAPPED.
+    # :socket         - Create a new socket from an existing FD.
     #
     # You can also specify the :protocol_info option which is a hash that may
     # contain any of the following keys:
@@ -64,6 +65,11 @@ module Win32
       @group          = args.delete(:group)          || 0
       @flags          = args.delete(:flags)          || WSA_FLAG_OVERLAPPED
 
+      # Typically passed when creating a new object from an existing FD.
+      @socket         = args.delete(:socket)
+      @port           = args.delete(:port)
+      @address        = args.delete(:address)
+
       @protocol_info = nil
 
       if args[:protocol_info]
@@ -97,18 +103,38 @@ module Win32
         raise ArgumentError, "invalid key(s): #{args.keys.join(', ')}"
       end
 
-      @socket = WSASocketA(
-        @address_family,
-        @socket_type,
-        @protocol,
-        @protocol_info,
-        @group,
-        @flags
-      )
+      if @socket.nil?
+        @socket = WSASocketA(
+          @address_family,
+          @socket_type,
+          @protocol,
+          @protocol_info,
+          @group,
+          @flags
+        )
+  
+        if @socket == INVALID_SOCKET_VALUE
+          raise SystemCallError.new('WSASocket', WSAGetLastError())
+        end
+      end
+    end
+    
+    # TODO: Support condition proc
+    def accept(condition = nil)
+      addr = SockaddrIn.new
 
-      if @socket == INVALID_SOCKET_VALUE
+      socket = WSAAccept(@socket, addr, addr.size, nil, nil)
+      
+      if socket == INVALID_SOCKET_VALUE
         raise SystemCallError.new('WSASocket', WSAGetLastError())
       end
+      
+      Socket.new(
+        :socket         => socket,
+        :address_family => addr[:sin_family],
+        :port           => addr[:sin_port],
+        :address        => addr[:sin_addr]
+      )
     end
 
     def connect(host, port = 'http', timeout = nil)
