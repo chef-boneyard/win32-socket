@@ -157,7 +157,7 @@ module Win32
 
       arr = []
 
-      6.times{
+      int.times{
         info = WSANAMESPACE_INFO.new(buffer)
         arr << info[:lpszIdentifier]
         buffer += WSANAMESPACE_INFO.size
