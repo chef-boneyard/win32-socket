@@ -159,11 +159,32 @@ module Win32
 
       int.times{
         info = WSANAMESPACE_INFO.new(buffer)
-        arr << info[:lpszIdentifier]
+        arr << info
         buffer += WSANAMESPACE_INFO.size
       }
 
       arr
+    end
+
+    def self.protocols
+      buflen = FFI::MemoryPointer.new(:ulong)
+      buffer = FFI::MemoryPointer.new(WSAPROTOCOL_INFO, 128)
+
+      buflen.write_int(buffer.size)
+
+      int = WSAEnumProtocolsA(nil, buffer, buflen)
+
+      if int == SOCKET_ERROR
+        raise SystemCallError.new('WSAEnumProtocols', WSAGetLastError())
+      end
+
+      arr = []
+
+      int.times{
+        info = WSAPROTOCOL_INFO.new(buffer)
+        arr << info
+        buffer += WSAPROTOCOL_INFO.size
+      }
     end
   end
 end
@@ -174,5 +195,5 @@ if $0 == __FILE__
   #s.connect('www.google.com')
   #s.close
 
-  p WSASocket.namespace_providers
+  p WSASocket.protocols
 end
