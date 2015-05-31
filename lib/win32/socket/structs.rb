@@ -28,8 +28,7 @@ module Windows
       )
     end
 
-    # TODO: Get sizes without creating pointer
-    sa_family_t = FFI::MemoryPointer.new(:uint)
+    sa_family_t = FFI::Type::UINT
 
     SS_MAXSIZE   = 128
     SS_ALIGNSIZE = FFI::MemoryPointer.new(:int64).size
