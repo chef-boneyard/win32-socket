@@ -1,14 +1,14 @@
 = Description
   A Ruby socket library for MS Windows.
 
-= How does Win32::Socket differ from Socket?
+= How does Win32::WSASocket differ from MRI's Socket?
   MRI uses the POSIX compatibility layer functions internally rather than the
   functions specific to the Windows API. While this works, it is also less
-  flexible.
+  flexible. This library uses the WSASocket API.
 
   There are several differences between a core Ruby Socket and a WSASocket
 
-  * A WSASocket is not necessarily overlapped.
+  * A WSASocket is not necessarily overlapped (asynchronous).
   * A WSASocket can be organized into socket groups.
   * A WSASocket lets you specify protocol data, such as service information,
     provider information, protocol chains, and so on.
