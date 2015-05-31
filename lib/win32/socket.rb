@@ -169,7 +169,7 @@ module Win32
 
     # Singleton methods
 
-    def self.namespace_providers
+    def self.namespace_providers(verbose = false)
       buflen = FFI::MemoryPointer.new(:ulong)
       buffer = FFI::MemoryPointer.new(WSANAMESPACE_INFO, 128)
 
@@ -185,14 +185,18 @@ module Win32
 
       int.times{
         info = WSANAMESPACE_INFO.new(buffer)
-        arr << info
+        if verbose
+          arr << info
+        else
+          arr << info[:lpszIdentifier]
+        end
         buffer += WSANAMESPACE_INFO.size
       }
 
       arr
     end
 
-    def self.protocols
+    def self.protocols(verbose = false)
       buflen = FFI::MemoryPointer.new(:ulong)
       buffer = FFI::MemoryPointer.new(WSAPROTOCOL_INFO, 128)
 
@@ -208,7 +212,11 @@ module Win32
 
       int.times{
         info = WSAPROTOCOL_INFO.new(buffer)
-        arr << info
+        if verbose
+          arr << info
+        else
+          arr << info[:szProtocol].to_s
+        end
         buffer += WSAPROTOCOL_INFO.size
       }
 
@@ -224,4 +232,5 @@ if $0 == __FILE__
   #s.close
 
   p WSASocket.protocols
+  p WSASocket.namespace_providers
 end
