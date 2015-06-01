@@ -222,8 +222,43 @@ module Win32
 
       arr
     end
-  end
-end
+
+    def self.getprotobyname(name)
+      buffer = FFI::MemoryPointer.new(:char, MAXGETHOSTSTRUCT)
+      size_ptr = FFI::MemoryPointer.new(:int)
+      size_ptr.write_int(buffer.size)
+
+      handle = WSAAsyncGetProtoByName(0, 0, name, buffer, size_ptr)
+
+      if handle == 0
+        raise SystemCallError.new('WSAAsyncGetProtoByName', WSAGetLastError())
+      end
+
+      SleepEx(1, true) 
+
+      struct = Protoent.new(buffer)
+      struct[:p_proto]
+    end
+
+    def self.getprotobynumber(number)
+      buffer = FFI::MemoryPointer.new(:char, MAXGETHOSTSTRUCT)
+      size_ptr = FFI::MemoryPointer.new(:int)
+      size_ptr.write_int(buffer.size)
+
+      handle = WSAAsyncGetProtoByNumber(0, 0, number, buffer, size_ptr)
+
+      if handle == 0
+        raise SystemCallError.new('WSAAsyncGetProtoByName', WSAGetLastError())
+      end
+
+      SleepEx(1, true) 
+
+      struct = Protoent.new(buffer)
+      struct[:p_name]
+    end
+
+  end # WSASocket
+end # Win32
 
 if $0 == __FILE__
   include Win32
@@ -231,6 +266,6 @@ if $0 == __FILE__
   #s.connect('www.google.com')
   #s.close
 
-  p WSASocket.protocols
-  p WSASocket.namespace_providers
+  p WSASocket.getprotobyname("tcp")
+  p WSASocket.getprotobynumber(6)
 end
