@@ -234,7 +234,7 @@ module Win32
         raise SystemCallError.new('WSAAsyncGetProtoByName', WSAGetLastError())
       end
 
-      SleepEx(1, true) 
+      SleepEx(10, true) 
 
       struct = Protoent.new(buffer)
       struct[:p_proto]
@@ -251,10 +251,27 @@ module Win32
         raise SystemCallError.new('WSAAsyncGetProtoByName', WSAGetLastError())
       end
 
-      SleepEx(1, true) 
+      SleepEx(10, true) 
 
       struct = Protoent.new(buffer)
       struct[:p_name]
+    end
+
+    def self.gethostbyname(name)
+      buffer = FFI::MemoryPointer.new(:char, MAXGETHOSTSTRUCT)
+      size_ptr = FFI::MemoryPointer.new(:int)
+      size_ptr.write_int(buffer.size)
+
+      handle = WSAAsyncGetHostByName(0, 0, name, buffer, size_ptr)
+
+      if handle == 0
+        raise SystemCallError.new('WSAAsyncGetProtoByName', WSAGetLastError())
+      end
+
+      SleepEx(100, true) 
+
+      struct = Hostent.new(buffer)
+      struct[:h_addr_list].read_array_of_string
     end
 
   end # WSASocket
@@ -266,6 +283,5 @@ if $0 == __FILE__
   #s.connect('www.google.com')
   #s.close
 
-  p WSASocket.getprotobyname("tcp")
-  p WSASocket.getprotobynumber(6)
+  p WSASocket.gethostbyname('google.com')
 end
