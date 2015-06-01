@@ -97,5 +97,15 @@ module Windows
         :p_proto,   :short
       )
     end
+
+    class Hostent < FFI::Struct
+      layout(
+        :h_name, :string,
+        :h_aliases, :pointer,
+        :h_addrtype, :short,
+        :h_length, :short,
+        :h_addr_list, :pointer
+      )
+    end
   end
 end
