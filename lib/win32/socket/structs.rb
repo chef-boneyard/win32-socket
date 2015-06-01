@@ -89,5 +89,13 @@ module Windows
         :lpszIdentifier, :string
       )
     end
+
+    class Protoent < FFI::Struct
+      layout(
+        :p_name,    :string,
+        :p_aliases, :pointer,
+        :p_proto,   :short
+      )
+    end
   end
 end
