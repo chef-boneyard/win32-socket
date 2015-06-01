@@ -77,6 +77,10 @@ module Windows
     PFL_MATCHES_PROTOCOL_ZERO   = 0x00000008
     PFL_NETWORKDIRECT_PROVIDER  = 0x00000010
 
+    # Miscellaneous
+
+    MAXGETHOSTSTRUCT = 1024
+
     # Errors
 
     INVALID_SOCKET_VALUE = (1<<FFI::Platform::ADDRESS_SIZE)-1
