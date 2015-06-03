@@ -285,6 +285,28 @@ module Win32
       struct[:h_name]
     end
 
+    def self.getservbyport(port, proto = nil)
+      buffer = FFI::MemoryPointer.new(:char, MAXGETHOSTSTRUCT)
+
+      handle = WSAAsyncGetServByPort(0, 0, port, proto, buffer, buffer.size)
+
+      if handle == 0
+        raise SystemCallError.new('WSAAsyncGetServByPort', WSAGetLastError())
+      end
+
+      struct = Servent.new(buffer)
+
+      SleepEx(10, false)
+      
+      # TODO: Problems
+      if struct[:s_name].nil?
+        WSACancelAsyncRequest(handle) if handle
+        raise "Unable to determine server name"
+      end
+
+      struct[:s_name]
+    end
+
   end # WSASocket
 end # Win32
 
@@ -294,5 +316,5 @@ if $0 == __FILE__
   #s.connect('www.google.com')
   #s.close
 
-  p WSASocket.gethostbyaddr('216.58.217.46')
+  p WSASocket.getservbyport(80, 'http')
 end
