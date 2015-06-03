@@ -107,5 +107,14 @@ module Windows
         :h_addr_list, :pointer
       )
     end
+
+    class Servent < FFI::Struct
+      layout(
+        :s_name, :string,
+        :s_aliases, :pointer,
+        :s_port, :short,
+        :s_proto, :string
+      )
+    end
   end
 end
