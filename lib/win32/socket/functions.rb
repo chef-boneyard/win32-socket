@@ -8,6 +8,7 @@ module Windows
     typedef :uintptr_t, :socket
     typedef :pointer, :ptr
     typedef :ushort, :word
+    typedef :uintptr_t, :handle
 
     ffi_lib :kernel32
 
