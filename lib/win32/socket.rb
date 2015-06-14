@@ -350,7 +350,7 @@ module Win32
       res = FFI::MemoryPointer.new(Addrinfo)
 
       if hints.empty?
-        hints = nil
+        hint = nil
       else
         hint = Addrinfo.new
         hint[:ai_flags] = hints.delete(:flags) || 0
