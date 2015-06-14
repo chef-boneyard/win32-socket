@@ -18,6 +18,8 @@ module Windows
 
     attach_function :closesocket, [:socket], :int
     attach_function :inet_addr, [:string], :ulong
+    attach_function :GetProtoByName, :getprotobyname, [:string], :ptr
+    attach_function :GetProtoByNumber, :getprotobynumber, [:int], :ptr
 
     attach_function :WSAAsyncGetHostByAddr, [:uintptr_t, :uint, :string, :int, :int, :buffer_out, :int], :uintptr_t
     attach_function :WSAAsyncGetHostByName, [:uintptr_t, :uint, :string, :buffer_out, :pointer], :uintptr_t
