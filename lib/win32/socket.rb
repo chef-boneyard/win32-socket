@@ -73,50 +73,42 @@ module Win32
       @protocol_info = nil
 
       if args[:protocol_info]
-        @protocol_info = WSAPROTOCOL_INFO.new
-        args.delete(:protocol_info).each{ |k,v|
-          @protocol_info[:dwServiceFlags1] = k[:service_flags]
-          @protocol_info[:dwProviderFlags] = k[:provider_flags]
-          @protocol_info[:ProviderId] = k[:provider_id]
-          @protocol_info[:dwCatalogEntryId] = k[:catalog_entry_id]
-          @protocol_info[:ProtocolChain] = k[:protocol_chain]
-          @protocol_info[:iVersion] = k[:version]
-          @protocol_info[:iAddressFamily] = k[:address_family]
-          @protocol_info[:iMaxSockAddr] = k[:maximum_address_length]
-          @protocol_info[:iMinSockAddr] = k[:minimum_address_length]
-          @protocol_info[:iSocketType] = k[:socket_type]
-
-          if k[:protocol].is_a?(String)
-            @protocol_info[:szProtocol] = k[:protocol]
-          else
-            @protocol_info[:iProtocol] = k[:protocol]
-          end
-
-          @protocol_info[:iProtocolMaxOffset] = k[:protocol_maximum_offset]
-          @protocol_info[:iNetworkByteOrder] = k[:network_byte_order]
-          @protocol_info[:iSecurityScheme] = k[:security_scheme]
-          @protocol_info[:dwMessageSize] = k[:message_size]
-        }
+        @protocol_info = set_protocol_struct(args.delete(:protocol_info))
       end
 
       if args.keys.size > 0
         raise ArgumentError, "invalid key(s): #{args.keys.join(', ')}"
       end
 
-      if @socket.nil?
-        @socket = WSASocketA(
-          @address_family,
-          @socket_type,
-          @protocol,
-          @protocol_info,
-          @group,
-          @flags
-        )
+      @socket = WSASocketA(
+        @address_family,
+        @socket_type,
+        @protocol,
+        @protocol_info,
+        @group,
+        @flags
+      )
   
-        if @socket == INVALID_SOCKET_VALUE
-          raise SystemCallError.new('WSASocket', WSAGetLastError())
-        end
+      if @socket == INVALID_SOCKET_VALUE
+        raise SystemCallError.new('WSASocket', WSAGetLastError())
       end
+    end
+
+    def self.create(opts = {})
+      socket = WSASocketA(
+        opts[:address_family],
+        opts[:socket_type],
+        opts[:protocol],
+        opts[:protocol_info],
+        opts[:group],
+        opts[:flags]
+      )
+  
+      if socket == INVALID_SOCKET_VALUE
+        raise SystemCallError.new('WSASocket', WSAGetLastError())
+      end
+
+      socket
     end
     
     # TODO: Support condition proc
@@ -126,15 +118,10 @@ module Win32
       socket = WSAAccept(@socket, addr, addr.size, nil, nil)
       
       if socket == INVALID_SOCKET_VALUE
-        raise SystemCallError.new('WSASocket', WSAGetLastError())
+        raise SystemCallError.new('WSAAccept', WSAGetLastError())
       end
       
-      Socket.new(
-        :socket         => socket,
-        :address_family => addr[:sin_family],
-        :port           => addr[:sin_port],
-        :address        => addr[:sin_addr]
-      )
+      socket
     end
 
     def connect(host, port = 'http', timeout = nil)
@@ -223,23 +210,25 @@ module Win32
       arr
     end
 
-    def self.getprotobyname(name)
-      buffer = FFI::MemoryPointer.new(:char, MAXGETHOSTSTRUCT)
-      size_ptr = FFI::MemoryPointer.new(:int)
-      size_ptr.write_int(buffer.size)
+    def self.getprotobyname(name, window = nil, message = nil)
+      if window
+        buffer = FFI::MemoryPointer.new(:char, MAXGETHOSTSTRUCT)
+        sz_ptr = FFI::MemoryPointer.new(:int)
+        sz_ptr.write_int(buffer.size)
 
-      handle = WSAAsyncGetProtoByName(0, 0, name, buffer, size_ptr)
+        handle = WSAAsyncGetProtoByName(window, message, name, buffer, sz_ptr)
 
-      if handle == 0
-        raise SystemCallError.new('WSAAsyncGetProtoByName', WSAGetLastError())
+        if handle == 0
+          raise SystemCallError.new('WSAAsyncGetProtoByName', WSAGetLastError())
+        end
+
+        nil
+      else
+        Protoent.new(GetProtoByName(name))[:p_proto]
       end
-
-      struct = Protoent.new(buffer)
-      SleepEx(1, true) while struct[:p_proto].nil?
-      struct[:p_proto]
     end
 
-    def self.getprotobynumber(number)
+    def self.getprotobynumber(number, window = nil, message = nil)
       buffer = FFI::MemoryPointer.new(:char, MAXGETHOSTSTRUCT)
       size_ptr = FFI::MemoryPointer.new(:int)
       size_ptr.write_int(buffer.size)
@@ -307,14 +296,47 @@ module Win32
       struct[:s_name]
     end
 
+    private
+
+    def set_protocol_struct(opts)
+      protocol_info = WSAPROTOCOL_INFO.new
+
+      opts.each{ |k,v|
+        protocol_info[:dwServiceFlags1] = k[:service_flags]
+        protocol_info[:dwProviderFlags] = k[:provider_flags]
+        protocol_info[:ProviderId] = k[:provider_id]
+        protocol_info[:dwCatalogEntryId] = k[:catalog_entry_id]
+        protocol_info[:ProtocolChain] = k[:protocol_chain]
+        protocol_info[:iVersion] = k[:version]
+        protocol_info[:iAddressFamily] = k[:address_family]
+        protocol_info[:iMaxSockAddr] = k[:maximum_address_length]
+        protocol_info[:iMinSockAddr] = k[:minimum_address_length]
+        protocol_info[:iSocketType] = k[:socket_type]
+
+        if k[:protocol]
+          if k[:protocol].is_a?(String)
+            protocol_info[:szProtocol] = k[:protocol]
+          else
+            protocol_info[:iProtocol] = k[:protocol]
+          end
+        end
+
+        protocol_info[:iProtocolMaxOffset] = k[:protocol_maximum_offset]
+        protocol_info[:iNetworkByteOrder] = k[:network_byte_order]
+        protocol_info[:iSecurityScheme] = k[:security_scheme]
+        protocol_info[:dwMessageSize] = k[:message_size]
+      }
+
+      protocol_info
+    end
+
   end # WSASocket
 end # Win32
 
 if $0 == __FILE__
   include Win32
+  extend Windows::WSASocketFunctions
   #s = WSASocket.new(:address_family => WSASocket::AF_INET)
   #s.connect('www.google.com')
   #s.close
-
-  p WSASocket.getservbyport(80, 'http')
 end
