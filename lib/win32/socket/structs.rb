@@ -129,5 +129,21 @@ module Windows
         :ai_next, :pointer
       )
     end
+
+    class AddrinfoEx < FFI::Struct
+      layout(
+        :ai_flags, :int,
+        :ai_family, :int,
+        :ai_socktype, :int,
+        :ai_protocol, :int,
+        :ai_addrlen, :int,
+        :ai_canonname, :string,
+        :ai_addr, Sockaddr,
+        :ai_blob, :pointer,
+        :ai_bloblen, :size_t,
+        :ai_provider, GUID,
+        :ai_next, :pointer
+      )
+    end
   end
 end
