@@ -116,5 +116,18 @@ module Windows
         :s_proto, :string
       )
     end
+
+    class Addrinfo < FFI::Struct
+      layout(
+        :ai_flags, :int,
+        :ai_family, :int,
+        :ai_socktype, :int,
+        :ai_protocol, :int,
+        :ai_addrlen, :int,
+        :ai_canonname, :string,
+        :ai_addr, Sockaddr,
+        :ai_next, :pointer
+      )
+    end
   end
 end
