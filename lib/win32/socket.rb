@@ -346,6 +346,37 @@ module Win32
       struct[:s_name]
     end
 
+    def self.getaddrinfo(host, service = nil, hints = {})
+      res = FFI::MemoryPointer.new(Addrinfo)
+
+      if hints.empty?
+        hints = nil
+      else
+        hint = Addrinfo.new
+        hint[:ai_flags] = hints.delete(:flags) || 0
+        hint[:ai_family] = hints.delete(:family) || 0
+        hint[:ai_protocol] = hints.delete(:protocol) || 0
+        hint[:ai_socktype] = hints.delete(:socktype) || 0
+
+        raise ArgumentError, "Unsupported hint(s): " + hints.keys.join(', ') unless hints.empty?
+      end
+
+      if GetAddrInfo(host, service, hint, res) != 0
+        raise SystemCallError.new('getaddrinfo', FFI.errno)
+      end
+      
+      addr = Addrinfo.new(res.read_pointer)
+      array = []
+
+      loop do
+        array << addr
+        break if addr[:ai_next].null?
+        addr = Addrinfo.new(addr[:ai_next])
+      end
+
+      array
+    end
+
     private
 
     def set_protocol_struct(opts)
@@ -390,5 +421,5 @@ if $0 == __FILE__
   #s.connect('www.google.com')
   #s.close
 
-  p WSASocket.namespace_providers
+  WSASocket.getaddrinfo('ipv6.google.com', nil, :family => WSASocket::AF_INET6, :socktype => WSASocket::SOCK_DGRAM, :protocol => WSASocket::IPPROTO_UDP)
 end
