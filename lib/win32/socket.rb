@@ -210,33 +210,53 @@ module Win32
       arr
     end
 
-    def self.getprotobyname(name, window = nil, message = nil)
-      if window
-        buffer = FFI::MemoryPointer.new(:char, MAXGETHOSTSTRUCT)
-        sz_ptr = FFI::MemoryPointer.new(:int)
-        sz_ptr.write_int(buffer.size)
+    def self.getprotobyname(name)
+      Protoent.new(GetProtoByName(name))[:p_proto]
+    end
 
-        handle = WSAAsyncGetProtoByName(window, message, name, buffer, sz_ptr)
+    # Get the protocol number by name asynchronously. Using this approach you
+    # must provide your own FFI buffer and cast it to a Protoent struct on your
+    # own once the operation is complete and the buffer has been set.
+    #
+    # If the +window+ argument (an HWND) is provided, then the +message+ is passed
+    # asynchronously to that window once the operation is complete.
+    #
+    # Returns a HANDLE that is the asynchronous task handle for the request.
+    #
+    # Example:
+    #
+    #   require 'win32/wsasocket'
+    #   include Windows::WSASocketStructs
+    #
+    #   buffer = FFI::MemoryPointer.new(:char, 1024)
+    #   handle = WSASocket.async_getprotobyname('tcp', buffer, SOME_HWND, SOME_MSG)
+    #   # Time passes...
+    #   p Protoent.new(buffer)[:p_proto]
+    #
+    def self.async_getprotobyname(name, buffer, window = 0, message = 0)
+      sz_ptr = FFI::MemoryPointer.new(:int)
+      sz_ptr.write_int(buffer.size)
 
-        if handle == 0
-          raise SystemCallError.new('WSAAsyncGetProtoByName', WSAGetLastError())
-        end
+      handle = WSAAsyncGetProtoByName(window, message, name, buffer, sz_ptr)
 
-        nil
-      else
-        Protoent.new(GetProtoByName(name))[:p_proto]
+      if handle == 0
+        raise SystemCallError.new('WSAAsyncGetProtoByName', WSAGetLastError())
       end
+
+      handle
     end
 
     def self.getprotobynumber(number, window = nil, message = nil)
-      buffer = FFI::MemoryPointer.new(:char, MAXGETHOSTSTRUCT)
-      size_ptr = FFI::MemoryPointer.new(:int)
-      size_ptr.write_int(buffer.size)
+      if window
+        buffer = FFI::MemoryPointer.new(:char, MAXGETHOSTSTRUCT)
+        size_ptr = FFI::MemoryPointer.new(:int)
+        size_ptr.write_int(buffer.size)
 
-      handle = WSAAsyncGetProtoByNumber(0, 0, number, buffer, size_ptr)
+        handle = WSAAsyncGetProtoByNumber(0, 0, number, buffer, size_ptr)
 
-      if handle == 0
-        raise SystemCallError.new('WSAAsyncGetProtoByNumber', WSAGetLastError())
+        if handle == 0
+          raise SystemCallError.new('WSAAsyncGetProtoByNumber', WSAGetLastError())
+        end
       end
 
       struct = Protoent.new(buffer)
@@ -335,8 +355,11 @@ end # Win32
 
 if $0 == __FILE__
   include Win32
-  extend Windows::WSASocketFunctions
+  include Windows::WSASocketStructs
+  extend Windows::WSASocketStructs
   #s = WSASocket.new(:address_family => WSASocket::AF_INET)
   #s.connect('www.google.com')
   #s.close
+
+  p WSASocket.getprotobyname('tcp')
 end
