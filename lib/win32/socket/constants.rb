@@ -77,6 +77,19 @@ module Windows
     PFL_MATCHES_PROTOCOL_ZERO   = 0x00000008
     PFL_NETWORKDIRECT_PROVIDER  = 0x00000010
 
+    # Addr Namespaces
+
+    NS_ALL        = 0
+    NS_DNS        = 12
+    NS_NETBT      = 13
+    NS_WINS       = 14
+    NS_NLA        = 15
+    NS_BTH        = 16
+    NS_NTDS       = 32
+    NS_EMAIL      = 37
+    NS_PNRPNAME   = 38
+    NS_PNRPCLOUD  = 39
+
     # Miscellaneous
 
     MAXGETHOSTSTRUCT = 1024
