@@ -24,6 +24,7 @@ module Windows
     attach_function :GetAddrInfoW, [:buffer_in, :buffer_in, :pointer, :pointer], :int
 
     attach_function :GetAddrInfoExA, [:string, :string, :dword, :ptr, :ptr, :ptr, :ptr, :ptr, :ptr, :ptr], :int
+    attach_function :GetHostByAddr, :gethostbyaddr, [:string, :int, :int], :pointer
     attach_function :GetHostByName, :gethostbyname, [:string], :pointer
     attach_function :GetProtoByName, :getprotobyname, [:string], :ptr
     attach_function :GetProtoByNumber, :getprotobynumber, [:int], :ptr
@@ -48,6 +49,7 @@ module Windows
     begin
       attach_function :GetAddrInfoExCancel, [:pointer], :int
       attach_function :GetAddrInfoExOverlappedResult, [:pointer], :int
+      attach_function :GetHostNameW, [:buffer_out, :int], :int
     rescue FFI::NotFoundError
       # Do nothing
     end
