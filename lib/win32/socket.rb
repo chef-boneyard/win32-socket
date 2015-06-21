@@ -221,7 +221,12 @@ module Win32
     # Returns the protocol number for the given +name+.
     #
     def self.getprotobyname(name)
-      Protoent.new(GetProtoByName(name))[:p_proto]
+      struct = Protoent.new(GetProtoByName(name))
+      [
+        struct[:p_name],
+        struct[:p_aliases].read_array_of_string,
+        struct[:p_proto]
+      ]
     end
 
     # Get the protocol number by name asynchronously. Using this approach you
@@ -259,7 +264,12 @@ module Win32
     # Returns the protocol name for the given number.
     #
     def self.getprotobynumber(num)
-      Protoent.new(GetProtoByNumber(num))[:p_name]
+      struct = Protoent.new(GetProtoByNumber(num))
+      [
+        struct[:p_name],
+        struct[:p_aliases].read_array_of_string,
+        struct[:p_proto]
+      ]
     end
 
     # Get the protocol name by number asynchronously. Using this approach you
@@ -430,5 +440,5 @@ if $0 == __FILE__
   #s.connect('www.google.com')
   #s.close
 
-  p WSASocket.gethostbyname('scipio')
+  p WSASocket.getprotobynumber(6)
 end
