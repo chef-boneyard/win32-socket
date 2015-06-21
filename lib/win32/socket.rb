@@ -249,10 +249,7 @@ module Win32
     #   p Protoent.new(buffer)[:p_proto]
     #
     def self.async_getprotobyname(name, buffer, window = 0, message = 0)
-      sz_ptr = FFI::MemoryPointer.new(:int)
-      sz_ptr.write_int(buffer.size)
-
-      handle = WSAAsyncGetProtoByName(window, message, name, buffer, sz_ptr)
+      handle = WSAAsyncGetProtoByName(window, message, name, buffer, buffer.size)
 
       if handle == 0
         raise SystemCallError.new('WSAAsyncGetProtoByName', WSAGetLastError())
@@ -291,11 +288,8 @@ module Win32
     #   # Time passes...
     #   p Protoent.new(buffer)[:p_name]
     #
-    def self.async_getprotobynumber(number, buffer, window = nil, message = nil)
-      size_ptr = FFI::MemoryPointer.new(:int)
-      size_ptr.write_int(buffer.size)
-
-      handle = WSAAsyncGetProtoByNumber(0, 0, number, buffer, size_ptr)
+    def self.async_getprotobynumber(number, buffer, window = 0, message = 0)
+      handle = WSAAsyncGetProtoByNumber(window, message, number, buffer, buffer.size)
 
       if handle == 0
         raise SystemCallError.new('WSAAsyncGetProtoByNumber', WSAGetLastError())
@@ -315,12 +309,12 @@ module Win32
       ]
     end
 
-    def self.async_gethostbyname(name)
-      buffer = FFI::MemoryPointer.new(:char, MAXGETHOSTSTRUCT)
+    #  buffer = FFI::MemoryPointer.new(:char, MAXGETHOSTSTRUCT)
+    def self.async_gethostbyname(name, buffer = nil, window = 0, message = 0)
       size_ptr = FFI::MemoryPointer.new(:int)
       size_ptr.write_int(buffer.size)
 
-      handle = WSAAsyncGetHostByName(0, 0, name, buffer, size_ptr)
+      handle = WSAAsyncGetHostByName(window, message, name, buffer, size_ptr)
 
       if handle == 0
         raise SystemCallError.new('WSAAsyncGetHostByName', WSAGetLastError())
@@ -329,40 +323,26 @@ module Win32
       handle
     end
 
-    def self.gethostbyaddr(addr, addr_type = AF_INET)
-      buffer = FFI::MemoryPointer.new(:char, MAXGETHOSTSTRUCT)
-
-      handle = WSAAsyncGetHostByAddr(0, 0, addr, addr.size, addr_type, buffer, buffer.size)
+    #  buffer = FFI::MemoryPointer.new(:char, MAXGETHOSTSTRUCT)
+    def self.async_gethostbyaddr(addr, addr_type, buffer, window = 0, message = 0)
+      handle = WSAAsyncGetHostByAddr(window, message, addr, addr.size, addr_type, buffer, buffer.size)
 
       if handle == 0
         raise SystemCallError.new('WSAAsyncGetHostByAddr', WSAGetLastError())
       end
 
-      struct = Hostent.new(buffer)
-      SleepEx(10, true) while struct[:h_name].nil?
-      struct[:h_name]
+      handle
     end
 
-    def self.getservbyport(port, proto = nil)
-      buffer = FFI::MemoryPointer.new(:char, MAXGETHOSTSTRUCT)
-
-      handle = WSAAsyncGetServByPort(0, 0, port, proto, buffer, buffer.size)
+    #  buffer = FFI::MemoryPointer.new(:char, MAXGETHOSTSTRUCT)
+    def self.async_getservbyport(port, proto, buffer, window = 0, message = 0)
+      handle = WSAAsyncGetServByPort(window, message, port, proto, buffer, buffer.size)
 
       if handle == 0
         raise SystemCallError.new('WSAAsyncGetServByPort', WSAGetLastError())
       end
 
-      struct = Servent.new(buffer)
-
-      SleepEx(10, false)
-
-      # TODO: Problems
-      if struct[:s_name].nil?
-        WSACancelAsyncRequest(handle) if handle
-        raise "Unable to determine server name"
-      end
-
-      struct[:s_name]
+      handle
     end
 
     def self.getaddrinfo(host, service = nil, hints = {})
@@ -440,5 +420,6 @@ if $0 == __FILE__
   #s.connect('www.google.com')
   #s.close
 
+  p WSASocket.getprotobyname('tcp')
   p WSASocket.getprotobynumber(6)
 end
