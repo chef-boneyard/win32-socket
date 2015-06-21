@@ -88,7 +88,7 @@ module Win32
         @group,
         @flags
       )
-  
+
       if @socket == INVALID_SOCKET_VALUE
         raise SystemCallError.new('WSASocket', WSAGetLastError())
       end
@@ -103,24 +103,24 @@ module Win32
         opts[:group],
         opts[:flags]
       )
-  
+
       if socket == INVALID_SOCKET_VALUE
         raise SystemCallError.new('WSASocket', WSAGetLastError())
       end
 
       socket
     end
-    
+
     # TODO: Support condition proc
     def accept(condition = nil)
       addr = SockaddrIn.new
 
       socket = WSAAccept(@socket, addr, addr.size, nil, nil)
-      
+
       if socket == INVALID_SOCKET_VALUE
         raise SystemCallError.new('WSAAccept', WSAGetLastError())
       end
-      
+
       socket
     end
 
@@ -290,11 +290,22 @@ module Win32
       if handle == 0
         raise SystemCallError.new('WSAAsyncGetProtoByNumber', WSAGetLastError())
       end
-      
+
       handle
     end
 
     def self.gethostbyname(name)
+      struct = Hostent.new(GetHostByName(name))
+
+      [
+        struct[:h_name],
+        struct[:h_aliases].read_array_of_string,
+        struct[:h_addrtype],
+        struct[:h_addr_list].read_array_of_string,
+      ]
+    end
+
+    def self.async_gethostbyname(name)
       buffer = FFI::MemoryPointer.new(:char, MAXGETHOSTSTRUCT)
       size_ptr = FFI::MemoryPointer.new(:int)
       size_ptr.write_int(buffer.size)
@@ -305,9 +316,7 @@ module Win32
         raise SystemCallError.new('WSAAsyncGetHostByName', WSAGetLastError())
       end
 
-      struct = Hostent.new(buffer)
-      SleepEx(5, true) while struct[:h_addr_list].address == 0
-      struct[:h_addr_list].read_array_of_string
+      handle
     end
 
     def self.gethostbyaddr(addr, addr_type = AF_INET)
@@ -336,7 +345,7 @@ module Win32
       struct = Servent.new(buffer)
 
       SleepEx(10, false)
-      
+
       # TODO: Problems
       if struct[:s_name].nil?
         WSACancelAsyncRequest(handle) if handle
@@ -364,7 +373,7 @@ module Win32
       if GetAddrInfo(host, service, hint, res) != 0
         raise SystemCallError.new('getaddrinfo', FFI.errno)
       end
-      
+
       addr = Addrinfo.new(res.read_pointer)
       array = []
 
@@ -421,5 +430,5 @@ if $0 == __FILE__
   #s.connect('www.google.com')
   #s.close
 
-  WSASocket.getaddrinfo('ipv6.google.com', nil, :family => WSASocket::AF_INET6, :socktype => WSASocket::SOCK_DGRAM, :protocol => WSASocket::IPPROTO_UDP)
+  p WSASocket.gethostbyname('scipio')
 end
