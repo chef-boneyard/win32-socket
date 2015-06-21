@@ -17,12 +17,14 @@ module Windows
     ffi_lib :ws2_32
 
     attach_function :closesocket, [:socket], :int
-    attach_function :FreeAddrInfoEx, [:pointer], :void
     attach_function :inet_addr, [:string], :ulong
+
+    attach_function :FreeAddrInfoEx, [:pointer], :void
     attach_function :GetAddrInfo, :getaddrinfo, [:string, :string, :pointer, :pointer], :int
     attach_function :GetAddrInfoW, [:buffer_in, :buffer_in, :pointer, :pointer], :int
-    
+
     attach_function :GetAddrInfoExA, [:string, :string, :dword, :ptr, :ptr, :ptr, :ptr, :ptr, :ptr, :ptr], :int
+    attach_function :GetHostByName, :gethostbyname, [:string], :pointer
     attach_function :GetProtoByName, :getprotobyname, [:string], :ptr
     attach_function :GetProtoByNumber, :getprotobynumber, [:int], :ptr
 
