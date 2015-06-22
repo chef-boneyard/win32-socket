@@ -382,17 +382,25 @@ module Win32
         raise ArgumentError, "Unsupported hint(s): " + hints.keys.join(', ') unless hints.empty?
       end
 
-      if GetAddrInfo(host, service, hint, res) != 0
-        raise SystemCallError.new('getaddrinfo', FFI.errno)
+      if host.encoding != Encoding::UTF_16LE
+        host = (host + 0.chr).encode(Encoding::UTF_16LE)
       end
 
-      addr = Addrinfo.new(res.read_pointer)
+      if service and service.encoding != Encoding::UTF_16LE
+        service = (service + 0.chr).encode(Encoding::UTF_16LE)
+      end
+
+      if GetAddrInfoW(host, service, hint, res) != 0
+        raise SystemCallError.new('GetAddrInfoW', FFI.errno)
+      end
+
+      addr = AddrinfoW.new(res.read_pointer)
       array = []
 
       loop do
         array << addr
         break if addr[:ai_next].null?
-        addr = Addrinfo.new(addr[:ai_next])
+        addr = AddrinfoW.new(addr[:ai_next])
       end
 
       array
@@ -442,5 +450,5 @@ if $0 == __FILE__
   #s.connect('www.google.com')
   #s.close
 
-  p WSASocket.gethostname
+  p WSASocket.getaddrinfo('www.ruby-lang.org', 'http').first[:ai_canonname]
 end
