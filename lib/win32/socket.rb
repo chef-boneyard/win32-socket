@@ -298,6 +298,28 @@ module Win32
       handle
     end
 
+    # Return the standard host for the local computer. On Windows 8 or later
+    # this will return a UTF-16LE encoding string.
+    #--
+    # Windows 8+ uses the GetHostNameW function internally.
+    #
+    def self.gethostname
+      buffer = 0.chr * 256
+
+      if respond_to?(:GetHostNameW)
+        buffer.encode!(Encoding::UTF_16LE)
+        if GetHostNameW(buffer, buffer.size) != 0
+          raise SystemCallError.new('GetHostNameW', FFI.errno)
+        end
+      else
+        if GetHostName(buffer, buffer.size) != 0
+          raise SystemCallError.new('gethostname', FFI.errno)
+        end
+      end
+
+      buffer.strip
+    end
+
     def self.gethostbyname(name)
       struct = Hostent.new(GetHostByName(name))
 
@@ -420,6 +442,5 @@ if $0 == __FILE__
   #s.connect('www.google.com')
   #s.close
 
-  p WSASocket.getprotobyname('tcp')
-  p WSASocket.getprotobynumber(6)
+  p WSASocket.gethostname
 end
