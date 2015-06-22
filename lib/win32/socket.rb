@@ -373,7 +373,7 @@ module Win32
       if hints.empty?
         hint = nil
       else
-        hint = Addrinfo.new
+        hint = AddrinfoW.new
         hint[:ai_flags] = hints.delete(:flags) || 0
         hint[:ai_family] = hints.delete(:family) || 0
         hint[:ai_protocol] = hints.delete(:protocol) || 0
