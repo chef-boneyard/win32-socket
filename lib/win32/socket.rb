@@ -132,6 +132,9 @@ module Win32
         timeval = nil
       end
 
+      #if port.is_a?(Fixnum)
+      #end
+
       bool = WSAConnectByNameA(@socket, host, port, nil, nil, nil, nil, timeval, nil)
 
       unless bool
@@ -356,6 +359,21 @@ module Win32
       handle
     end
 
+    # TODO: Not working right
+    def self.getservbyname(name, proto = nil)
+      Servent.new(GetServByName(name, proto))[:s_port]
+    end
+
+    def self.async_getservbyname(name, proto, buffer, window = 0, message = 0)
+      handle = WSAAsyncGetServByName(window, message, name, proto, buffer, buffer.size)
+
+      if handle == 0
+        raise SystemCallError.new('WSAAsyncGetServByPort', WSAGetLastError())
+      end
+
+      handle
+    end
+
     #  buffer = FFI::MemoryPointer.new(:char, MAXGETHOSTSTRUCT)
     def self.async_getservbyport(port, proto, buffer, window = 0, message = 0)
       handle = WSAAsyncGetServByPort(window, message, port, proto, buffer, buffer.size)
@@ -450,5 +468,6 @@ if $0 == __FILE__
   #s.connect('www.google.com')
   #s.close
 
-  p WSASocket.getaddrinfo('www.ruby-lang.org', 'http').first[:ai_canonname]
+  #p WSASocket.getaddrinfo('www.ruby-lang.org', 'http').first[:ai_canonname]
+  p WSASocket.getservbyname('http')
 end
