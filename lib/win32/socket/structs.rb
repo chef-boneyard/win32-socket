@@ -130,6 +130,19 @@ module Windows
       )
     end
 
+    class AddrinfoW < FFI::Struct
+      layout(
+        :ai_flags, :int,
+        :ai_family, :int,
+        :ai_socktype, :int,
+        :ai_protocol, :int,
+        :ai_addrlen, :size_t,
+        :ai_canonname, :buffer_in,
+        :ai_addr, Sockaddr,
+        :ai_next, :pointer
+      )
+    end
+
     class AddrinfoEx < FFI::Struct
       layout(
         :ai_flags, :int,
