@@ -137,7 +137,7 @@ module Windows
         :ai_socktype, :int,
         :ai_protocol, :int,
         :ai_addrlen, :size_t,
-        :ai_canonname, :buffer_in,
+        :ai_canonname, :pointer,
         :ai_addr, Sockaddr,
         :ai_next, :pointer
       )
