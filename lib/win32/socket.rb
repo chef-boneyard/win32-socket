@@ -11,13 +11,28 @@ module Win32
     extend Windows::WSASocketStructs
     extend Windows::WSASocketFunctions
 
+    # The socket address family, e.g. AF_INET.
     attr_reader :address_family
+
+    # The socket type, e.g. SOCK_STREAM
     attr_reader :socket_type
+
+    # The socket protocol, e.g. IPPROTO_TCP
     attr_reader :protocol
+
+    # Protocol information. See the constructor for details.
     attr_reader :protocol_info
+
+    # The name of the socket group. May be nil.
     attr_reader :group
+
+    # Integer value of OR'd flags for the socket.
     attr_reader :flags
+
+    # The port number of the socket.
     attr_reader :port
+
+    # The address of the socket.
     attr_reader :address
 
     # Creates and returns a new Win32::Socket instance. The following +args+ are
