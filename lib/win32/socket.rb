@@ -105,7 +105,7 @@ module Win32
       )
 
       if @socket == INVALID_SOCKET_VALUE
-        raise SystemCallError.new('WSASocket', WSAGetLastError())
+        FFI.raise_windows_error('WSASocket', WSAGetLastError())
       end
     end
 
@@ -120,7 +120,7 @@ module Win32
       )
 
       if socket == INVALID_SOCKET_VALUE
-        raise SystemCallError.new('WSASocket', WSAGetLastError())
+        FFI.raise_windows_error('WSASocket', WSAGetLastError())
       end
 
       socket
@@ -133,7 +133,7 @@ module Win32
       socket = WSAAccept(@socket, addr, addr.size, nil, nil)
 
       if socket == INVALID_SOCKET_VALUE
-        raise SystemCallError.new('WSAAccept', WSAGetLastError())
+        FFI.raise_windows_error('WSAAccept', WSAGetLastError())
       end
 
       socket
@@ -153,7 +153,7 @@ module Win32
       bool = WSAConnectByNameA(@socket, host, port, nil, nil, nil, nil, timeval, nil)
 
       unless bool
-        raise SystemCallError.new('WSAConnectByName', WSAGetLastError())
+        FFI.raise_windows_error('WSAConnectByName', WSAGetLastError())
       end
 
       @socket
@@ -161,14 +161,14 @@ module Win32
 
     def close
       if closesocket(@socket) == SOCKET_ERROR
-        raise SystemCallError.new("closesocket", WSAGetLastError())
+        FFI.raise_windows_error('closesocket', WSAGetLastError())
       end
     end
 
     def cleanup
       close
       if WSACleanup() == SOCKET_ERROR
-        raise SystemCallError.new("WSACleanup", WSAGetLastError())
+        FFI.raise_windows_error('WSACleanup', WSAGetLastError())
       end
     end
 
@@ -187,7 +187,7 @@ module Win32
       int = WSAEnumNameSpaceProvidersA(buflen, buffer)
 
       if int == SOCKET_ERROR
-        raise SystemCallError.new('WSAEnumNameSpaceProviders', WSAGetLastError())
+        FFI.raise_windows_error('WSAEnumNameSpaceProviders', WSAGetLastError())
       end
 
       arr = []
@@ -218,7 +218,7 @@ module Win32
       int = WSAEnumProtocolsA(nil, buffer, buflen)
 
       if int == SOCKET_ERROR
-        raise SystemCallError.new('WSAEnumProtocols', WSAGetLastError())
+        FFI.raise_windows_error('WSAEnumProtocols', WSAGetLastError())
       end
 
       arr = []
@@ -270,7 +270,7 @@ module Win32
       handle = WSAAsyncGetProtoByName(window, message, name, buffer, buffer.size)
 
       if handle == 0
-        raise SystemCallError.new('WSAAsyncGetProtoByName', WSAGetLastError())
+        FFI.raise_windows_error('WSAAsyncGetProtoByName', WSAGetLastError())
       end
 
       handle
@@ -310,7 +310,7 @@ module Win32
       handle = WSAAsyncGetProtoByNumber(window, message, number, buffer, buffer.size)
 
       if handle == 0
-        raise SystemCallError.new('WSAAsyncGetProtoByNumber', WSAGetLastError())
+        FFI.raise_windows_error('WSAAsyncGetProtoByNumber', WSAGetLastError())
       end
 
       handle
@@ -327,11 +327,11 @@ module Win32
       if respond_to?(:GetHostNameW)
         buffer.encode!(Encoding::UTF_16LE)
         if GetHostNameW(buffer, buffer.size) != 0
-          raise SystemCallError.new('GetHostNameW', FFI.errno)
+          FFI.raise_windows_error('GetHostNameW', FFI.errno)
         end
       else
         if GetHostName(buffer, buffer.size) != 0
-          raise SystemCallError.new('gethostname', FFI.errno)
+          FFI.raise_windows_error('gethostname', FFI.errno)
         end
       end
 
@@ -351,13 +351,10 @@ module Win32
 
     #  buffer = FFI::MemoryPointer.new(:char, MAXGETHOSTSTRUCT)
     def self.async_gethostbyname(name, buffer = nil, window = 0, message = 0)
-      size_ptr = FFI::MemoryPointer.new(:int)
-      size_ptr.write_int(buffer.size)
-
-      handle = WSAAsyncGetHostByName(window, message, name, buffer, size_ptr)
+      handle = WSAAsyncGetHostByName(window, message, name, buffer, buffer.size)
 
       if handle == 0
-        raise SystemCallError.new('WSAAsyncGetHostByName', WSAGetLastError())
+        FFI.raise_windows_error('WSAAsyncGetHostByName', WSAGetLastError())
       end
 
       handle
@@ -368,7 +365,7 @@ module Win32
       handle = WSAAsyncGetHostByAddr(window, message, addr, addr.size, addr_type, buffer, buffer.size)
 
       if handle == 0
-        raise SystemCallError.new('WSAAsyncGetHostByAddr', WSAGetLastError())
+        FFI.raise_windows_error('WSAAsyncGetHostByAddr', WSAGetLastError())
       end
 
       handle
@@ -383,7 +380,7 @@ module Win32
       handle = WSAAsyncGetServByName(window, message, name, proto, buffer, buffer.size)
 
       if handle == 0
-        raise SystemCallError.new('WSAAsyncGetServByPort', WSAGetLastError())
+        FFI.raise_windows_error('WSAAsyncGetServByPort', WSAGetLastError())
       end
 
       handle
@@ -394,7 +391,7 @@ module Win32
       handle = WSAAsyncGetServByPort(window, message, port, proto, buffer, buffer.size)
 
       if handle == 0
-        raise SystemCallError.new('WSAAsyncGetServByPort', WSAGetLastError())
+        FFI.raise_windows_error('WSAAsyncGetServByPort', WSAGetLastError())
       end
 
       handle
@@ -424,7 +421,7 @@ module Win32
       end
 
       if GetAddrInfoW(host, service, hint, res) != 0
-        raise SystemCallError.new('GetAddrInfoW', FFI.errno)
+        FFI.raise_windows_error('GetAddrInfoW', FFI.errno)
       end
 
       addr = AddrinfoW.new(res.read_pointer)

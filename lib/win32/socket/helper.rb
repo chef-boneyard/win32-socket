@@ -43,10 +43,10 @@ module FFI
   # Raises a Windows specific error using SystemCallError that is based on
   # the +err+ provided, with the message prepended with the +function+ name.
   #
-  def raise_winerror(function, err=FFI.errno)
+  def raise_windows_error(function, err=FFI.errno)
     raise SystemCallError.new(win_error(function, err), err)
   end
 
   module_function :win_error
-  module_function :raise_winerror
+  module_function :raise_windows_error
 end
