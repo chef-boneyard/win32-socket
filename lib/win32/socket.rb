@@ -107,6 +107,16 @@ module Win32
       if @socket == INVALID_SOCKET_VALUE
         FFI.raise_windows_error('WSASocket', WSAGetLastError())
       end
+
+      if block_given?
+        begin
+          yield self
+        ensure
+          close
+        end
+      end
+
+      ObjectSpace.define_finalizer(self, self.class.finalize(@socket))
     end
 
     def self.create(opts = {})
@@ -470,16 +480,24 @@ module Win32
       protocol_info
     end
 
+    private
+
+    # Automatically close socket when it goes out of scope.
+    #
+    def self.finalize(socket)
+      proc{ closesocket(socket) }
+    end
+
   end # WSASocket
 end # Win32
 
 if $0 == __FILE__
   include Win32
 
-  #s = WSASocket.new(:address_family => WSASocket::AF_INET)
+  s = WSASocket.new(:address_family => WSASocket::AF_INET)
   #s.connect('www.google.com')
   #s.close
 
   #p WSASocket.getaddrinfo('www.ruby-lang.org', 'http').first[:ai_canonname]
-  p WSASocket.getservbyname('http')
+  #p WSASocket.getservbyname('http')
 end
