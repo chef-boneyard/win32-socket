@@ -246,15 +246,17 @@ module Win32
       arr
     end
 
-    # Returns the protocol number for the given +name+.
+    # Returns the protocol number for the given +name+. If +verbose+ is true,
+    # then a Protoent struct is returned instead, which contains the following
+    # members:
     #
-    def self.getprotobyname(name)
+    # * p_name
+    # * p_aliases
+    # * p_proto
+    #
+    def self.getprotobyname(name, verbose = false)
       struct = Protoent.new(GetProtoByName(name))
-      [
-        struct[:p_name],
-        struct[:p_aliases].read_array_of_string,
-        struct[:p_proto]
-      ]
+      verbose ? struct : struct[:p_proto]
     end
 
     # Get the protocol number by name asynchronously. Using this approach you
@@ -494,10 +496,11 @@ end # Win32
 if $0 == __FILE__
   include Win32
 
-  s = WSASocket.new(:address_family => WSASocket::AF_INET)
+  #s = WSASocket.new(:address_family => WSASocket::AF_INET)
   #s.connect('www.google.com')
   #s.close
 
   #p WSASocket.getaddrinfo('www.ruby-lang.org', 'http').first[:ai_canonname]
   #p WSASocket.getservbyname('http')
+  p WSASocket.getprotobyname('tcp', true).members #[:p_aliases]
 end
