@@ -1,18 +1,28 @@
 require 'ffi'
 
 class FFI::Pointer
-  # Returns an array of strings for char** types.
-  def read_array_of_string
-    elements = []
+  unless instance_methods.include?(:read_array_of_string)
+    # Returns an array of strings for char** types.
+    def read_array_of_string
+      elements = []
 
-    loc = self
+      loc = self
 
-    until ((element = loc.read_pointer).null?)
-      elements << element.read_string
-      loc += FFI::Type::POINTER.size
+      until ((element = loc.read_pointer).null?)
+        elements << element.read_string
+        loc += FFI::Type::POINTER.size
+      end
+
+      elements
     end
+  end
 
-    elements
+  unless instance_methods.include?(:read_wide_string)
+    def read_wide_string(num_bytes)
+      read_bytes(num_bytes).force_encoding('UTF-16LE')
+        .encode('UTF-8', :invalid => :replace, :undef => :replace)
+        .split(0.chr).first.force_encoding(Encoding.default_external)
+    end
   end
 end
 
