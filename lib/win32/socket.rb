@@ -349,7 +349,7 @@ module Win32
         end
       end
 
-      buffer.strip
+      buffer.strip.encode(Encoding.default_external)
     end
 
     def self.gethostbyname(name)
