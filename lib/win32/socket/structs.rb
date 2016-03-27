@@ -130,7 +130,7 @@ module Windows
         :ai_socktype, :int,
         :ai_protocol, :int,
         :ai_addrlen, :int,
-        :ai_canonname, :string,
+        :ai_canonname, :pointer,
         :ai_addr, Sockaddr,
         :ai_next, :pointer
       )
@@ -144,10 +144,12 @@ module Windows
         :ai_protocol, :int,
         :ai_addrlen, :size_t,
         :ai_canonname, :pointer,
-        :ai_addr, Sockaddr,
+        :ai_addr, :pointer,
         :ai_next, :pointer
       )
     end
+
+    AddrInfoStruct = Struct.new('AddrInfo', :family, :socktype, :protocol, :canonname)
 
     class AddrinfoEx < FFI::Struct
       layout(
