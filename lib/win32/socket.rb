@@ -288,15 +288,17 @@ module Win32
       handle
     end
 
-    # Returns the protocol name for the given number.
+    # Returns the protocol name for the given +number+. If +verbose+ is true,
+    # then a Protoent struct is returned instead, which contains the following
+    # members:
     #
-    def self.getprotobynumber(num)
+    # * p_name
+    # * p_aliases
+    # * p_proto
+    #
+    def self.getprotobynumber(num, verbose = false)
       struct = Protoent.new(GetProtoByNumber(num))
-      [
-        struct[:p_name],
-        struct[:p_aliases].read_array_of_string,
-        struct[:p_proto]
-      ]
+      verbose ? struct : struct[:p_name]
     end
 
     # Get the protocol name by number asynchronously. Using this approach you
