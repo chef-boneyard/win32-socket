@@ -256,7 +256,16 @@ module Win32
     #
     def self.getprotobyname(name, verbose = false)
       struct = Protoent.new(GetProtoByName(name))
-      verbose ? struct : struct[:p_proto]
+
+      if verbose
+        ProtoentStruct.new(
+          struct[:p_name],
+          struct[:p_aliases].read_array_of_string,
+          struct[:p_proto]
+        )
+      else
+        struct[:p_proto]
+      end
     end
 
     # Get the protocol number by name asynchronously. Using this approach you
@@ -298,7 +307,16 @@ module Win32
     #
     def self.getprotobynumber(num, verbose = false)
       struct = Protoent.new(GetProtoByNumber(num))
-      verbose ? struct : struct[:p_name]
+
+      if verbose
+        ProtoentStruct.new(
+          struct[:p_name],
+          struct[:p_aliases].read_array_of_string,
+          struct[:p_proto]
+        )
+      else
+        struct[:p_name]
+      end
     end
 
     # Get the protocol name by number asynchronously. Using this approach you
@@ -355,12 +373,12 @@ module Win32
     def self.gethostbyname(name)
       struct = Hostent.new(GetHostByName(name))
 
-      [
+      HostStruct.new(
         struct[:h_name],
         struct[:h_aliases].read_array_of_string,
         struct[:h_addrtype],
         struct[:h_addr_list].read_array_of_string,
-      ]
+      )
     end
 
     #  buffer = FFI::MemoryPointer.new(:char, MAXGETHOSTSTRUCT)
@@ -504,5 +522,6 @@ if $0 == __FILE__
 
   #p WSASocket.getaddrinfo('www.ruby-lang.org', 'http').first[:ai_canonname]
   #p WSASocket.getservbyname('http')
-  p WSASocket.getprotobyname('tcp', true).members #[:p_aliases]
+  p WSASocket.getprotobyname('tcp', true)
+  #p WSASocket.gethostbyname(WSASocket.gethostname)
 end

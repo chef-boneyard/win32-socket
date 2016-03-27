@@ -23,6 +23,6 @@ class WSASocketGetprotobynumber < Test::Unit::TestCase
   end
 
   test "getprotobynumber returns an array of Protent struct in verbose mode" do
-    assert_kind_of(WSASocket::Protoent, WSASocket.getprotobynumber(6, true))
+    assert_kind_of(Struct::Proto, WSASocket.getprotobynumber(6, true))
   end
 end

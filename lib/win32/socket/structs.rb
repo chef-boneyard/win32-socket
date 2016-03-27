@@ -98,6 +98,9 @@ module Windows
       )
     end
 
+    # Wrapper for Protoent
+    ProtoentStruct = Struct.new('Proto', :name, :aliases, :proto)
+
     class Hostent < FFI::Struct
       layout(
         :h_name, :string,
@@ -107,6 +110,9 @@ module Windows
         :h_addr_list, :pointer
       )
     end
+
+    # Wrapper for Hostent
+    HostStruct = Struct.new('Host', :name, :aliases, :addr_type, :addr_list)
 
     class Servent < FFI::Struct
       layout(
