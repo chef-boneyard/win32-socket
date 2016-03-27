@@ -448,7 +448,7 @@ module Win32
         host = (host + 0.chr).encode(Encoding::UTF_16LE)
       end
 
-      if service and service.encoding != Encoding::UTF_16LE
+      if service && service.encoding != Encoding::UTF_16LE
         service = (service + 0.chr).encode(Encoding::UTF_16LE)
       end
 
@@ -457,7 +457,9 @@ module Win32
       end
 
       addr = AddrinfoW.new(res.read_pointer)
+
       array = []
+      canon_name = nil
 
       loop do
         array << addr
@@ -465,7 +467,18 @@ module Win32
         addr = AddrinfoW.new(addr[:ai_next])
       end
 
-      array
+      unless array.first[:ai_canonname].null?
+        canon_name = array.first[:ai_canonname].read_wide_string(512)
+      end
+
+      array.map{ |a|
+        AddrInfoStruct.new(
+          a[:ai_family],
+          a[:ai_socktype],
+          a[:ai_protocol],
+          canon_name
+        )
+      }
     end
 
     private
@@ -520,8 +533,8 @@ if $0 == __FILE__
   #s.connect('www.google.com')
   #s.close
 
-  #p WSASocket.getaddrinfo('www.ruby-lang.org', 'http').first[:ai_canonname]
+  p WSASocket.getaddrinfo('www.ruby-lang.org', 'http', {:flags => 2}) #.first[:ai_canonname]
   #p WSASocket.getservbyname('http')
-  p WSASocket.getprotobyname('tcp', true)
+  #p WSASocket.getprotobyname('tcp', true)
   #p WSASocket.gethostbyname(WSASocket.gethostname)
 end
