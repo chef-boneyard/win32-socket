@@ -370,6 +370,10 @@ module Win32
       buffer.strip.encode(Encoding.default_external)
     end
 
+    # Returns a Struct::Host object containing information for the given +name+.
+    #
+    # Note that the WSASocket.getaddrinfo method is preferred over this.
+    #
     def self.gethostbyname(name)
       struct = Hostent.new(GetHostByName(name))
 
@@ -429,6 +433,18 @@ module Win32
       handle
     end
 
+    # This method provides protocol-independent translation from an ANSI host
+    # +name+ to an address. You may also specify a service, and any hints
+    # you want passed.
+    #
+    # The result is an array of Struct::AddrInfo objects.
+    #
+    # Examples:
+    #
+    #   WSASocket.getaddrinfo(WSASocket.localhost)
+    #   WSASocket.getaddrinfo('www.ruby-lang.org', 'http')
+    #   WSASocket.getaddrinfo('www.ruby-lang.org', 'http', :flags => WSASocket::AI_CANONNAME)
+    #
     def self.getaddrinfo(host, service = nil, hints = {})
       res = FFI::MemoryPointer.new(Addrinfo)
 
@@ -546,8 +562,8 @@ if $0 == __FILE__
   #s.close
 
   #p WSASocket.getaddrinfo(WSASocket.gethostname)
-  #p WSASocket.getaddrinfo('www.ruby-lang.org', 'http', {:flags => 2}) #.first[:ai_canonname]
-  p WSASocket.getaddrinfo('www.ruby-lang.org', 'bogus')
+  p WSASocket.getaddrinfo('www.ruby-lang.org', 'http', {:flags => WSASocket::AI_CANONNAME}) #.first[:ai_canonname]
+  #p WSASocket.getaddrinfo('www.ruby-lang.org', 'bogus')
   #p WSASocket.getservbyname('http')
   #p WSASocket.getprotobyname('tcp', true)
   #p WSASocket.gethostbyname(WSASocket.gethostname)
