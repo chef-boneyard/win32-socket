@@ -9,7 +9,7 @@ require 'win32/socket'
 class WSASocketGetprotobyname < Test::Unit::TestCase
   include Win32
 
-  test "namepace_providers basic functionality" do
+  test "getprotobyname basic functionality" do
     assert_respond_to(WSASocket, :getprotobyname)
   end
 
