@@ -149,7 +149,7 @@ module Windows
       )
     end
 
-    AddrInfoStruct = Struct.new('AddrInfo', :family, :socktype, :protocol, :canonname)
+    AddrInfoStruct = Struct.new('AddrInfo', :family, :socktype, :protocol, :canonical_name, :ip_address)
 
     class AddrinfoEx < FFI::Struct
       layout(
