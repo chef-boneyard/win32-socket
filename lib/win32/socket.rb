@@ -448,7 +448,7 @@ module Win32
         host = (host + 0.chr).encode(Encoding::UTF_16LE)
       end
 
-      if service && service.encoding != Encoding::UTF_16LE
+      if service and service.encoding != Encoding::UTF_16LE
         service = (service + 0.chr).encode(Encoding::UTF_16LE)
       end
 
@@ -472,11 +472,23 @@ module Win32
       end
 
       array.map{ |a|
+        if [WSASocket::AF_INET, WSASocket::AF_INET6].include?(a[:ai_family])
+          buf = 0.chr * 46
+
+          siz_ptr = FFI::MemoryPointer.new(:uintptr_t)
+          siz_ptr.write_ulong(buf.size)
+
+          if WSAAddressToStringA(a[:ai_addr], a[:ai_addrlen], nil, buf, siz_ptr) > 0
+            FFI.raise_windows_error('WSAAddressToString', WSAGetLastError())
+          end
+        end
+
         AddrInfoStruct.new(
           a[:ai_family],
           a[:ai_socktype],
           a[:ai_protocol],
-          canon_name
+          canon_name,
+          buf.strip
         )
       }
     end
@@ -533,7 +545,9 @@ if $0 == __FILE__
   #s.connect('www.google.com')
   #s.close
 
-  p WSASocket.getaddrinfo('www.ruby-lang.org', 'http', {:flags => 2}) #.first[:ai_canonname]
+  #p WSASocket.getaddrinfo(WSASocket.gethostname)
+  #p WSASocket.getaddrinfo('www.ruby-lang.org', 'http', {:flags => 2}) #.first[:ai_canonname]
+  p WSASocket.getaddrinfo('www.ruby-lang.org', 'bogus')
   #p WSASocket.getservbyname('http')
   #p WSASocket.getprotobyname('tcp', true)
   #p WSASocket.gethostbyname(WSASocket.gethostname)
