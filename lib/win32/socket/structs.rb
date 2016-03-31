@@ -116,12 +116,14 @@ module Windows
 
     class Servent < FFI::Struct
       layout(
-        :s_name, :string,
+        :s_name, :pointer,
         :s_aliases, :pointer,
         :s_port, :short,
-        :s_proto, :string
+        :s_proto, :pointer
       )
     end
+
+    ServentStruct = Struct.new('Servent', :name, :aliases, :port, :proto)
 
     class Addrinfo < FFI::Struct
       layout(

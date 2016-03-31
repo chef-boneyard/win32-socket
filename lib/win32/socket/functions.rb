@@ -29,7 +29,8 @@ module Windows
     attach_function :GetProtoByName, :getprotobyname, [:string], :ptr
     attach_function :GetProtoByNumber, :getprotobynumber, [:int], :ptr
     attach_function :GetHostName, :gethostname, [:buffer_out, :int], :int
-    attach_function :GetServByName,:getservbyname, [:string, :string], :pointer
+    attach_function :GetServByName, :getservbyname, [:string, :string], :pointer
+    attach_function :GetServByPort, :getservbyport, [:int, :string], :pointer
 
     attach_function :WSAAddressToStringA, [:pointer, :uintptr_t, :pointer, :buffer_out, :pointer], :int
     attach_function :WSAAsyncGetHostByAddr, [:uintptr_t, :uint, :string, :int, :int, :buffer_out, :int], :uintptr_t

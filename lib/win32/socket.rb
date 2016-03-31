@@ -43,7 +43,7 @@ module Win32
     # :protocol       - Default protocol is IPPROTO_TCP.
     # :group          - No socket group by default.
     # :flags          - Default is WSA_FLAG_OVERLAPPED.
-    # :socket         - Create a new socket from an existing FD.
+    # #:socket         - Create a new socket from an existing FD.
     #
     # You can also specify the :protocol_info option which is a hash that may
     # contain any of the following keys:
@@ -81,14 +81,14 @@ module Win32
       @flags          = args.delete(:flags)          || WSA_FLAG_OVERLAPPED
 
       # Typically passed when creating a new object from an existing FD.
-      @socket         = args.delete(:socket)
-      @port           = args.delete(:port)
-      @address        = args.delete(:address)
-
-      @protocol_info = nil
+      #@socket         = args.delete(:socket)
+      #@port           = args.delete(:port)
+      #@address        = args.delete(:address)
 
       if args[:protocol_info]
         @protocol_info = set_protocol_struct(args.delete(:protocol_info))
+      else
+        @protocol_info = nil
       end
 
       if args.keys.size > 0
@@ -149,7 +149,7 @@ module Win32
       socket
     end
 
-    def connect(host, port = 'http', timeout = nil)
+    def connect(host, service = 'http', timeout = nil)
       if timeout
         timeval = Timeval.new
         timeval[:tv_sec] = timeout
@@ -157,8 +157,9 @@ module Win32
         timeval = nil
       end
 
-      #if port.is_a?(Fixnum)
-      #end
+      if service.is_a?(Fixnum)
+        port = self.class.getprotobynumber(service)
+      end
 
       bool = WSAConnectByNameA(@socket, host, port, nil, nil, nil, nil, timeval, nil)
 
@@ -407,9 +408,29 @@ module Win32
       handle
     end
 
-    # TODO: Not working right
-    def self.getservbyname(name, proto = nil)
-      Servent.new(GetServByName(name, proto))[:s_port]
+    # The getservbyname function retrieves service information corresponding
+    # to a service +name+ and an optional +protocol+.
+    #
+    # If the +verbose+ option is true, then a Struct::Servent struct is
+    # returned.
+    #
+    def self.getservbyname(name, proto = nil, verbose = false)
+      struct = Servent.new(GetServByName(name, proto))
+
+      if struct.null?
+        FFI.raise_windows_error('getservbyname', FFI.errno)
+      end
+
+      if verbose
+        ServentStruct.new(
+          struct[:s_name].read_string,
+          struct[:s_aliases].read_array_of_string,
+          struct[:s_port].ntohs,
+          struct[:s_proto].read_string
+        )
+      else
+        struct[:s_port].ntohs
+      end
     end
 
     def self.async_getservbyname(name, proto, buffer, window = 0, message = 0)
@@ -420,6 +441,25 @@ module Win32
       end
 
       handle
+    end
+
+    def self.getservbyport(port, proto = nil, verbose = false)
+      struct = Servent.new(GetServByPort(port.htons, proto))
+
+      if struct.null?
+        FFI.raise_windows_error('getservbyport', FFI.errno)
+      end
+
+      if verbose
+        ServentStruct.new(
+          struct[:s_name].read_string,
+          struct[:s_aliases].read_array_of_string,
+          struct[:s_port].ntohs,
+          struct[:s_proto].read_string
+        )
+      else
+        struct[:s_name].read_string
+      end
     end
 
     #  buffer = FFI::MemoryPointer.new(:char, MAXGETHOSTSTRUCT)
@@ -560,11 +600,8 @@ if $0 == __FILE__
   #s = WSASocket.new(:address_family => WSASocket::AF_INET)
   #s.connect('www.google.com')
   #s.close
+  #
 
-  #p WSASocket.getaddrinfo(WSASocket.gethostname)
-  p WSASocket.getaddrinfo('www.ruby-lang.org', 'http', {:flags => WSASocket::AI_CANONNAME}) #.first[:ai_canonname]
-  #p WSASocket.getaddrinfo('www.ruby-lang.org', 'bogus')
-  #p WSASocket.getservbyname('http')
-  #p WSASocket.getprotobyname('tcp', true)
-  #p WSASocket.gethostbyname(WSASocket.gethostname)
+  #p WSASocket.getservbyname('http', 'tcp', true)
+  p WSASocket.getservbyport(80, 'tcp')
 end

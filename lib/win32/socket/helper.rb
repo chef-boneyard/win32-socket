@@ -60,3 +60,17 @@ module FFI
   module_function :win_error
   module_function :raise_windows_error
 end
+
+class Integer
+  def htons
+    [self].pack('S').unpack('n')[0]
+  end
+
+  def ntohs
+    [self].pack('n').unpack('S')[0]
+  end
+
+  def htonl
+    [self].pack('L').unpack('N')[0]
+  end
+end
