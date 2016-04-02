@@ -112,5 +112,7 @@ module Windows
 
     INVALID_SOCKET_VALUE = (1<<FFI::Platform::ADDRESS_SIZE)-1
     SOCKET_ERROR = -1
+
+    WSAEMSGSIZE = 10040
   end
 end

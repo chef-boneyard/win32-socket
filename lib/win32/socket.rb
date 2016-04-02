@@ -164,6 +164,46 @@ module Win32
       @socket
     end
 
+    def send(data, flags = 0)
+      data = [data] unless data.is_a?(Array)
+
+      bufs = data.collect do |str|
+        struct = WSABUF.new
+        struct[:buf] = FFI::MemoryPointer.from_string(str)
+        struct[:len] = str.size
+        struct
+      end
+
+      bytes_sent = FFI::MemoryPointer.new(:ulong)
+
+      rv = WSASend(@socket, bufs, bufs.size, bytes_sent, flags, nil, nil)
+
+      FFI.raise_windows_error('WSASend', rv) if rv != 0
+
+      bytes_sent.read_ulong
+    end
+
+    def receive(flags = 0)
+      buf = WSABUF.new
+      bytes_received = FFI::MemoryPointer.new(:ulong)
+
+      rv = WSARecv(@socket, buf, buf.size, bytes_received, flags, nil, nil)
+
+      if rv != 0 && rv == WSAEMSGSIZE
+        buf.clear
+        size = bytes_received.read_ulong
+        buf[:buf] = FFI::MemoryPointer.new(:char, size)
+        buf[:len] = size
+        rv = WSARecv(@socket, buf, buf.size, bytes_received, flags, nil, nil)
+      end
+
+      if rv != 0
+        FFI.raise_windows_error('WSARecv', rv) if rv != 0
+      end
+
+      buf[:buf].read_string
+    end
+
     def close
       if closesocket(@socket) == SOCKET_ERROR
         FFI.raise_windows_error('closesocket', WSAGetLastError())

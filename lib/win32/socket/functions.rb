@@ -46,6 +46,8 @@ module Windows
     attach_function :WSAEnumNameSpaceProvidersA, [:ptr, :ptr], :int
     attach_function :WSAEnumProtocolsA, [:ptr, :ptr, :ptr], :int
     attach_function :WSAGetLastError, [], :int
+    attach_function :WSARecv, [:pointer, :pointer, :ulong, :pointer, :ulong, :pointer, :pointer], :int
+    attach_function :WSASend, [:pointer, :pointer, :ulong, :pointer, :ulong, :pointer, :pointer], :int
     attach_function :WSASocketA, [:int, :int, :int, :ptr, :int, :dword], :socket
     attach_function :WSAStartup, [:word, :ptr], :int
 

@@ -170,5 +170,9 @@ module Windows
         :ai_next, :pointer
       )
     end
+
+    class WSABUF < FFI::Struct
+      layout(:len, :ulong, :buf, :pointer)
+    end
   end
 end
