@@ -29,11 +29,14 @@ module Win32
     # Integer value of OR'd flags for the socket.
     attr_reader :flags
 
-    # The port number of the socket.
-    attr_reader :port
-
     # The address of the socket.
     attr_reader :address
+
+    # The local address of a connection.
+    attr_reader :local_address
+
+    # The remote address of a connection.
+    attr_reader :remote_address
 
     # Creates and returns a new Win32::Socket instance. The following +args+ are
     # possible:
@@ -43,7 +46,6 @@ module Win32
     # :protocol       - Default protocol is IPPROTO_TCP.
     # :group          - No socket group by default.
     # :flags          - Default is WSA_FLAG_OVERLAPPED.
-    # #:socket         - Create a new socket from an existing FD.
     #
     # You can also specify the :protocol_info option which is a hash that may
     # contain any of the following keys:
@@ -80,10 +82,9 @@ module Win32
       @group          = args.delete(:group)          || 0
       @flags          = args.delete(:flags)          || WSA_FLAG_OVERLAPPED
 
-      # Typically passed when creating a new object from an existing FD.
-      #@socket         = args.delete(:socket)
-      #@port           = args.delete(:port)
-      #@address        = args.delete(:address)
+      # Set in connect call
+      @local_address  = nil
+      @remote_address = nil
 
       if args[:protocol_info]
         @protocol_info = set_protocol_struct(args.delete(:protocol_info))
@@ -119,24 +120,6 @@ module Win32
       ObjectSpace.define_finalizer(self, self.class.finalize(@socket))
     end
 
-    def self.create(opts = {})
-      socket = WSASocketA(
-        opts[:address_family],
-        opts[:socket_type],
-        opts[:protocol],
-        opts[:protocol_info],
-        opts[:group],
-        opts[:flags]
-      )
-
-      if socket == INVALID_SOCKET_VALUE
-        FFI.raise_windows_error('WSASocket', WSAGetLastError())
-      end
-
-      socket
-    end
-
-    # TODO: Support condition proc
     def accept(condition = nil)
       addr = SockaddrIn.new
 
@@ -158,14 +141,25 @@ module Win32
       end
 
       if service.is_a?(Fixnum)
-        port = self.class.getprotobynumber(service)
+        service = self.class.getservbyport(service)
       end
 
-      bool = WSAConnectByNameA(@socket, host, port, nil, nil, nil, nil, timeval, nil)
+      local = Sockaddr.new
+      local_size = FFI::MemoryPointer.new(:ulong)
+      local_size.write_ulong(local.size)
+
+      remote = Sockaddr.new
+      remote_size = FFI::MemoryPointer.new(:ulong)
+      remote_size.write_ulong(remote.size)
+
+      bool = WSAConnectByNameA(@socket, host, service, local_size, local, remote_size, remote, timeval, nil)
 
       unless bool
         FFI.raise_windows_error('WSAConnectByName', WSAGetLastError())
       end
+
+      @local_address  = SockaddrStruct.new(local[:sa_family], local[:sa_data].to_s)
+      @remote_address = SockaddrStruct.new(remote[:sa_family], remote[:sa_data].to_s)
 
       @socket
     end
@@ -174,6 +168,11 @@ module Win32
       if closesocket(@socket) == SOCKET_ERROR
         FFI.raise_windows_error('closesocket', WSAGetLastError())
       end
+
+      @local_address  = nil
+      @remote_address = nil
+
+      true
     end
 
     def cleanup
@@ -443,6 +442,12 @@ module Win32
       handle
     end
 
+    # The getservbyport function retrieves service information corresponding
+    # to a service +port+ and an optional +protocol+.
+    #
+    # If the +verbose+ option is true, then a Struct::Servent struct is
+    # returned.
+    #
     def self.getservbyport(port, proto = nil, verbose = false)
       struct = Servent.new(GetServByPort(port.htons, proto))
 
@@ -597,11 +602,8 @@ end # Win32
 if $0 == __FILE__
   include Win32
 
-  #s = WSASocket.new(:address_family => WSASocket::AF_INET)
-  #s.connect('www.google.com')
-  #s.close
-  #
+  s = WSASocket.new(:address_family => WSASocket::AF_INET)
+  s.connect('www.google.com')
+  s.close
 
-  #p WSASocket.getservbyname('http', 'tcp', true)
-  p WSASocket.getservbyport(80, 'tcp')
 end
