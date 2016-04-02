@@ -15,6 +15,8 @@ module Windows
       layout(:sa_family, :ushort, :sa_data, [:char, 14])
     end
 
+    SockaddrStruct = Struct.new('Sockaddr', :family, :data)
+
     class InAddr < FFI::Struct
       layout(:s_addr, :ulong)
     end
